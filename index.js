@@ -73,15 +73,7 @@ global.themeemoji = "•"
 
 const pairingCode = !!phoneNumber || process.argv.includes("--pairing-code")
 const useMobile = process.argv.includes("--mobile")
-
-const rl = process.stdin.isTTY ? readline.createInterface({ input: process.stdin, output: process.stdout }) : null;
-const question = (text) => {
-    if (!rl) {
-        console.log("Skipping interactive input in a non-TTY environment.");
-        return Promise.resolve(""); // Return an empty string instead of waiting for user input
-    }
-    return new Promise((resolve) => rl.question(text, resolve));
-};     
+   
 async function startXeonBotInc() {
     let { version, isLatest } = await fetchLatestBaileysVersion()
     const { state, saveCreds } = await useMultiFileAuthState(`./session`)

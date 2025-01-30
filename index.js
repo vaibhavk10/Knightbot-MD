@@ -40,6 +40,19 @@ const {
 const NodeCache = require("node-cache")
 const pino = require("pino")
 const readline = require("readline")
+const isInteractive = process.stdin.isTTY; // Check if running in a terminal
+
+let question;
+if (isInteractive) {
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    question = (text) => new Promise((resolve) => rl.question(text, resolve));
+} else {
+    question = async (text) => {
+        console.log("Skipping interactive input. Running in non-interactive mode.");
+        return ""; // Return default or empty value
+    };
+}
+
 const { parsePhoneNumber } = require("libphonenumber-js")
 const { PHONENUMBER_MCC } = require('@whiskeysockets/baileys/lib/Utils/generics')
 const { rmSync, existsSync } = require('fs')
@@ -61,9 +74,14 @@ global.themeemoji = "•"
 const pairingCode = !!phoneNumber || process.argv.includes("--pairing-code")
 const useMobile = process.argv.includes("--mobile")
 
-const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
-const question = (text) => new Promise((resolve) => rl.question(text, resolve))
-         
+const rl = process.stdin.isTTY ? readline.createInterface({ input: process.stdin, output: process.stdout }) : null;
+const question = (text) => {
+    if (!rl) {
+        console.log("Skipping interactive input in a non-TTY environment.");
+        return Promise.resolve(""); // Return an empty string instead of waiting for user input
+    }
+    return new Promise((resolve) => rl.question(text, resolve));
+};     
 async function startXeonBotInc() {
     let { version, isLatest } = await fetchLatestBaileysVersion()
     const { state, saveCreds } = await useMultiFileAuthState(`./session`)
@@ -149,12 +167,8 @@ async function startXeonBotInc() {
     if (pairingCode && !XeonBotInc.authState.creds.registered) {
         if (useMobile) throw new Error('Cannot use pairing code with mobile api')
 
-        let phoneNumber
-        if (!!global.phoneNumber) {
-            phoneNumber = global.phoneNumber
-        } else {
-            phoneNumber = await question(chalk.bgBlack(chalk.greenBright(`Please type your WhatsApp number 😍\nFor example: +917023951514 : `)))
-        }
+      let phoneNumber = global.phoneNumber || process.env.WA_PHONE_NUMBER || "911234567890";
+console.log(chalk.green(`Using WhatsApp number: ${phoneNumber}`));
 
         phoneNumber = phoneNumber.replace(/[^0-9]/g, '')
 

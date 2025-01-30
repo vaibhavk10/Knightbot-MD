@@ -1,28 +1,13 @@
-FROM node:18-slim
-
-WORKDIR /app
-
-# Install required packages
+FROM node:lts-buster
+RUN git clone https://github.com/vaibhavk10/knightbot-md/ /root/knightbot-md
+WORKDIR /root/knightbot-md
 RUN apt-get update && \
-    apt-get install -y \
-    git \
-    python3 \
-    make \
-    g++ \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies
+  apt-get install -y \
+  ffmpeg \
+  git \
+  imagemagick \
+  webp && \
+  apt-get upgrade -y && \
+  rm -rf /var/lib/apt/lists/*
 RUN npm install
-
-# Copy project files
-COPY . .
-
-# Create session directory with full permissions
-RUN mkdir -p session && \
-    chmod -R 777 session
-
-# Start the bot
-CMD ["node", "index.js"]
+CMD ["npm", "start"]

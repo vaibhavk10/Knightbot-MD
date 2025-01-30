@@ -173,46 +173,26 @@ console.log(chalk.green(`Using WhatsApp number: ${phoneNumber}`));
     }
 
     // Connection handling
-    XeonBotInc.ev.on('connection.update', async (s) => {
-        const { connection, lastDisconnect } = s
-        if (connection == "open") {
-            console.log(chalk.magenta(` `))
-            console.log(chalk.yellow(`🌿Connected to => ` + JSON.stringify(XeonBotInc.user, null, 2)))
-            
-            // Send message to bot's own number
-            const botNumber = XeonBotInc.user.id.split(':')[0] + '@s.whatsapp.net';
-            await XeonBotInc.sendMessage(botNumber, { 
-                text: `🤖 Bot Connected Successfully!\n\n⏰ Time: ${new Date().toLocaleString()}\n✅ Status: Online and Ready!
-                \n Give a Star ⭐ to our bot:\n https://github.com/mruniquehacker/KnightBot-MD\n ✅Make sure to join below channel`,
-                contextInfo: {
-                    forwardingScore: 999,
-                    isForwarded: true,
-                    forwardedNewsletterMessageInfo: {
-                        newsletterJid: '120363161513685998@newsletter',
-                        newsletterName: 'KnightBot MD',
-                        serverMessageId: -1
-                    }
-                }
-            });
+   XeonBotInc.ev.on('connection.update', async (s) => {
+    const { connection, lastDisconnect } = s;
+    
+    if (connection === "open") {
+        console.log(chalk.green("✅ Connected to WhatsApp!"));
+    } 
+    else if (connection === "close") {
+        console.log(chalk.red("❌ Connection closed. Restarting in 10 seconds..."));
+        
+        const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== 401;
+        if (shouldReconnect) {
+            await delay(10000); // Wait 10 seconds before retrying
+            startXeonBotInc();
+        } else {
+            console.log(chalk.red("🚨 Fatal error: Authentication failed. Exiting..."));
+            process.exit(1);
+        }
+    }
+});
 
-            await delay(1999)
-            console.log(chalk.yellow(`\n\n                  ${chalk.bold.blue(`[ ${global.botname || 'KNIGHT BOT'} ]`)}\n\n`))
-            console.log(chalk.cyan(`< ================================================== >`))
-            console.log(chalk.magenta(`\n${global.themeemoji || '•'} YT CHANNEL: MR UNIQUE HACKER`))
-            console.log(chalk.magenta(`${global.themeemoji || '•'} GITHUB: mrunqiuehacker`))
-            console.log(chalk.magenta(`${global.themeemoji || '•'} WA NUMBER: ${owner}`))
-            console.log(chalk.magenta(`${global.themeemoji || '•'} CREDIT: MR UNIQUE HACKER`))
-            console.log(chalk.green(`${global.themeemoji || '•'} 🤖 Bot Connected Successfully! ✅`))
-        }
-        if (
-            connection === "close" &&
-            lastDisconnect &&
-            lastDisconnect.error &&
-            lastDisconnect.error.output.statusCode != 401
-        ) {
-            startXeonBotInc()
-        }
-    })
 
     XeonBotInc.ev.on('creds.update', saveCreds)
     
